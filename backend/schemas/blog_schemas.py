@@ -64,16 +64,18 @@ class CommentBase(BaseModel):
     image_url: Optional[str] = None
 
 class CommentCreate(CommentBase):
-    pass  
+    parent_comment_id : Optional[UUID] = None  
 
 class CommentResponse(CommentBase):
     id: UUID
     post_id: UUID
     user_id: UUID
     created_at: datetime
-    image_url: Optional[str] = None
     content: str
+    parent_comment_id : Optional[UUID] = None  
     user: UserResponse  
+    
+    replies : Optional[List["CommentResponse"]] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
 

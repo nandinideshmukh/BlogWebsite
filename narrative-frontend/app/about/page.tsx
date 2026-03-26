@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "../components/NavBar"
+import Navbar from "../../components/NavBar"
 import Link from "next/link";
 import { 
   Github, 
@@ -28,7 +28,7 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/nandinideshmukh",
       twitter: "https://twitter.com/nandinideshmukh",
       icon: Server,
-      color: "from-blue-600 to-cyan-600"
+      color: "from-blue-600 to-blue-800"
     },
     {
       name: "Siddhi Chavan",
@@ -40,7 +40,7 @@ export default function AboutPage() {
       linkedin: "https://linkedin.com/in/siddhichavan",
       twitter: "https://twitter.com/siddhichavan",
       icon: Smartphone,
-      color: "from-purple-600 to-pink-600"
+      color: "from-blue-600 to-blue-800"
     }
   ];
 

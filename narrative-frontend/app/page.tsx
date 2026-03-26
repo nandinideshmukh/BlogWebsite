@@ -1,6 +1,8 @@
-import Navbar from "./components/NavBar";
+import Navbar from "../components/NavBar";
 import Link from "next/link";
 import { ArrowRight, Sparkles, BookOpen, Users, TrendingUp } from "lucide-react";
+import UserCount from "../components/UserCount";
+import Footer from "@/components/Footer";
 
 export default function HomePage() {
   return (
@@ -30,7 +32,7 @@ export default function HomePage() {
               {/* Main Heading */}
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  Welcome to BlogWebsite
+                  Welcome to Narrative
                 </span>
                 <br />
                 <span className="text-gray-800 text-4xl md:text-5xl lg:text-6xl block mt-2">
@@ -46,7 +48,7 @@ export default function HomePage() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link
-                  href="/blogs"
+                  href="/register"
                   className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-purple-200 flex items-center space-x-2"
                 >
                   <span>Start Reading</span>
@@ -64,14 +66,14 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-
+      <UserCount />
         {/* Features Section */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Why Choose BlogApp?
+                  Why Choose Narrative?
                 </span>
               </h2>
               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -117,7 +119,7 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
+        {/* <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Ready to Start Your Journey?
@@ -132,15 +134,16 @@ export default function HomePage() {
               >
                 Get Started Now
               </Link>
-              <Link
+              {/* <Link
                 href="/blogs"
                 className="px-8 py-4 border-2 border-white text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300"
               >
                 Browse Blogs
-              </Link>
-            </div>
-          </div>
-        </section>
+              </Link> */}
+            {/* </div> */}
+          {/* </div> */}
+        {/* </section> */} 
+        <Footer/>
       </main>
     </>
   );

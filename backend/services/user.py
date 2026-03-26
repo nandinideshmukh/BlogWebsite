@@ -111,10 +111,10 @@ def create_user(
 ) -> Dict[str, Any]:
     """Create a new user with optional profile image."""
     try:
-        if check_user_exists_username(username=username, db=db):
+        if check_user_exists(email=email, db=db):
             return {
                 "success": False,
-                "message": "User with this username already exists.",
+                "message": "User with this email already exists.",
                 "user": None,
                 "access_token": None,
             }
@@ -414,25 +414,19 @@ def change_password(
 
     return {"success": True, "message": "Password updated successfully"}
 
+def delete_user(user_id: str, current_user: User, db: Session):
 
-def delete_user(user_id: str, db: Session) -> Dict[str, Any]:
-    """Delete a user and all of their related content.
-
-    Explicitly remove likes, comments, posts, etc. prior to
-    deleting the user in order to avoid SQLite integrity errors.
-    """
     user = get_user_by_id(user_id, db)
 
     if not user:
         return {"success": False, "message": "User not found"}
 
-    try:
-        db.query(Likes).filter(Likes.user_id == user.id).delete(synchronize_session=False)
-        db.query(Comment).filter(Comment.user_id == user.id).delete(synchronize_session=False)
-        db.query(Post).filter(Post.user_id == user.id).delete(synchronize_session=False)
-    except Exception as e:
-        # log but continue; deletion may fail later if something else is wrong
-        print(f"cleanup before user delete failed: {e}")
+    if current_user.role != "admin" and current_user.id != user.id:
+        return {"success": False, "message": "You are not authorized to delete this user"}
+
+    db.query(Likes).filter(Likes.user_id == user.id).delete(synchronize_session=False)
+    db.query(Comment).filter(Comment.user_id == user.id).delete(synchronize_session=False)
+    db.query(Post).filter(Post.user_id == user.id).delete(synchronize_session=False)
 
     db.delete(user)
     db.commit()
@@ -440,21 +434,21 @@ def delete_user(user_id: str, db: Session) -> Dict[str, Any]:
     return {"success": True, "message": "User deleted successfully"}
 
 
-def search_users(query: str, db: Session, limit: int = 10):
-    """Search users by username."""
-    users = db.query(User).filter(
-    User.username.ilike(f"%{query}%")
-    ).limit(limit).all()
-    return [
-        {
-            "id": str(user.id),
-            "username": user.username,
-            "email": user.email,
-            "role": user.role,
-            "profile_image": user.profile_image,
-        }
-        for user in users
-    ]
+# def search_users(query: str, db: Session, limit: int = 10):
+#     """Search users by username."""
+#     users = db.query(User).filter(
+#     User.username.ilike(f"%{query}%")
+#     ).limit(limit).all()
+#     return [
+#         {
+#             "id": str(user.id),
+#             "username": user.username,
+#             "email": user.email,
+#             "role": user.role,
+#             "profile_image": user.profile_image,
+#         }
+#         for user in users
+# ]
     
 def search_users_by_admin(query: str, db: Session, limit: int = 10):
     """Search users by username for admin."""
@@ -472,12 +466,19 @@ from fastapi import Request
 
 def track_visit(request: Request, db: Session):
     """Record a site visit and return the total visit count."""
-    visit = SiteVisit(
-        ip_address=request.client.host,
-        user_agent=request.headers.get("user-agent")
-    )
-    db.add(visit)
-    db.commit()
+    ip = request.client.host
+    
+    existing = db.query(SiteVisit).filter(
+        SiteVisit.ip_address == ip
+    ).first()
+
+    if not existing:
+        visit = SiteVisit(
+            ip_address=ip,
+            user_agent=request.headers.get("user-agent")
+        )
+        db.add(visit)
+        db.commit()
 
     # return total number of visits recorded so far
     try:
@@ -494,13 +495,14 @@ cloudinary.config(
     cloud_name=os.getenv("CLOUDINARY_NAME"),
     api_key=os.getenv("CLOUDINARY_KEY"),
     api_secret=os.getenv("CLOUDINARY_SECRET"),
+    # api_proxy="http://proxy.server:3128",
     secure=True
 )
 print(os.getenv("CLOUDINARY_NAME"))
 print(os.getenv("CLOUDINARY_KEY"))
 print(os.getenv("CLOUDINARY_SECRET"))
 
-def add_image(
+async def add_image(
     user_id: str,
     image_file,
     db: Session,
@@ -508,9 +510,12 @@ def add_image(
     post_id: Optional[str] = None,
     comment_id: Optional[str] = None
 ) -> dict:
-
+    
+    print(f"add_image called with: user_id={user_id}, image_type={image_type}, comment_id={comment_id}")  # Debug
+    
     user = get_user_by_id(user_id, db)
     if user is None:
+        print(f"User not found: {user_id}")  # Debug
         return {"success": False, "message": "User not found", "image_url": None}
     
     if image_type == "post" and not post_id:
@@ -531,17 +536,18 @@ def add_image(
         return {"success": False, "message": "Invalid image type", "image_url": None}
     
     try:
+        print(f"Uploading to Cloudinary: folder={folder}, public_id={public_id}")  # Debug
         result = cloudinary.uploader.upload(
             image_file,
-            folder = folder,
+            folder=folder,
             public_id=public_id,
             overwrite=True,
             resource_type="image"
         )
         
         image_url = result.get("secure_url")
+        print(f"Cloudinary returned URL: {image_url}")  # Debug
         
-        # Update user's profile_image if this is a profile picture
         if image_type == "profile":
             user.profile_image = image_url
             db.commit()
@@ -553,4 +559,5 @@ def add_image(
         }
         
     except Exception as e:
+        print(f"Cloudinary upload error: {str(e)}")  # Debug
         return {"success": False, "message": str(e), "image_url": None}

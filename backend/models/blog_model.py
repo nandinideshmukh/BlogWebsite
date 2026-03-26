@@ -86,6 +86,12 @@ class Comment(Base):
 
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, nullable=False)
+    
+    parent_comment_id = Column(
+        UUID(),
+        ForeignKey("comments.id", ondelete="CASCADE"),
+        nullable=True
+    )
 
     # liked by many users, so we can have a separate table for likes in the future
     # the future is presented below as the Likes table haahaahaa
@@ -95,6 +101,20 @@ class Comment(Base):
     post: Mapped["Post"] = relationship(back_populates="comments", passive_deletes=True)
     user: Mapped["User"] = relationship(back_populates="comments")
     likes: Mapped[List["Likes"]] = relationship(back_populates="comment")
+    
+    # replies
+    parent: Mapped["Comment"] = relationship(
+        "Comment",
+        remote_side=[id],
+        back_populates="replies"
+    )
+
+    replies: Mapped[List["Comment"]] = relationship(
+        "Comment",
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        lazy="selectin"
+    )
 
 
 class Likes(Base):

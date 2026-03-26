@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { LogIn, Mail, Lock, Eye, EyeOff, Sparkles } from "lucide-react";
-import Navbar from "../components/NavBar";
+import { LogIn, Mail, Lock, Eye, EyeOff, Sparkles, CheckCircle } from "lucide-react";
+import Navbar from "@/components/NavBar";
 
 interface LoginResponse {
   success: boolean;
@@ -30,8 +30,8 @@ export default function LoginPage() {
     username: "",
     password: "",
   });
-  const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -39,72 +39,49 @@ export default function LoginPage() {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
     if (error) setError("");
+    if (successMessage) setSuccessMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccessMessage("");
 
     try {
-      // Try different approaches based on what your backend expects
+      const form = new URLSearchParams();
+      form.append("username", formData.username);
+      form.append("password", formData.password);
 
-      // Approach 1: JSON (what we tried)
-      const jsonResponse = await fetch("http://localhost:8000/users/login", {
+      const response = await fetch("http://localhost:8000/users/login", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/x-www-form-urlencoded",
         },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-        }),
+        body: form,
       });
 
-      // If JSON fails with 422, try form data
-      if (jsonResponse.status === 422) {
-        console.log("JSON approach failed, trying form data...");
+      const data: LoginResponse = await response.json();
 
-        // Approach 2: Form Data
-        const formData_body = new FormData();
-        formData_body.append("username", formData.username);
-        formData_body.append("password", formData.password);
+      if (data.success && data.access_token) {
+        localStorage.setItem("access_token", data.access_token);
 
-        const formResponse = await fetch("http://localhost:8000/users/login", {
-          method: "POST",
-          body: formData_body,
-        });
-
-        const data: LoginResponse = await formResponse.json();
-
-        if (data.success && data.access_token) {
-          localStorage.setItem("access_token", data.access_token);
+        if (data.user) {
           localStorage.setItem("user", JSON.stringify(data.user));
-          setSuccessMessage("Login successful! Redirecting to homepage...");
-          setTimeout(() => {
-            router.push("/");
-            router.refresh();
-          }, 1500);
-          return;
-        } else {
-          setError(data.message || "Login failed. Please try again.");
         }
-      } else {
-        // If JSON worked
-        const data: LoginResponse = await jsonResponse.json();
 
-        if (data.success && data.access_token) {
-          localStorage.setItem("access_token", data.access_token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-          router.push("/");
+        setSuccessMessage("Login successful! Redirecting to homepage...");
+
+        setTimeout(() => {
+          router.push("/main_page");
           router.refresh();
-        } else {
-          setError(data.message || "Login failed. Please try again.");
-        }
+        }, 2000);
+      } else {
+        setError(data.message || "Login failed. Please try again.");
       }
     } catch (err) {
-      console.error("Login error:", err);
       setError("Network error. Please check your connection and try again.");
     } finally {
       setIsLoading(false);
@@ -150,14 +127,26 @@ export default function LoginPage() {
 
           {/* Login Form */}
           <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            {/* Success Message */}
             {successMessage && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-600 text-sm font-medium">
-                  {successMessage}
-                </p>
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-fade-in">
+                <div className="flex items-center">
+                  <CheckCircle className="w-5 h-5 text-green-600 mr-2 flex-shrink-0" />
+                  <div>
+                    <p className="text-green-700 text-sm font-medium">{successMessage}</p>
+                    <div className="flex items-center mt-2">
+                      <div className="w-32 h-1.5 bg-green-200 rounded-full overflow-hidden">
+                        <div className="h-full bg-green-600 rounded-full animate-progress"></div>
+                      </div>
+                      <span className="text-xs text-green-600 ml-2">Redirecting...</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
-            {error && (
+
+            {/* Error Message */}
+            {error && !successMessage && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600 text-sm">{error}</p>
               </div>
@@ -180,9 +169,9 @@ export default function LoginPage() {
                     value={formData.username}
                     onChange={handleChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    disabled={isLoading || !!successMessage}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter your username"
-                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -203,14 +192,15 @@ export default function LoginPage() {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                    disabled={isLoading || !!successMessage}
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter your password"
-                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    disabled={isLoading || !!successMessage}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
@@ -229,6 +219,7 @@ export default function LoginPage() {
                     name="remember-me"
                     type="checkbox"
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    disabled={isLoading || !!successMessage}
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                     Remember me
@@ -246,13 +237,18 @@ export default function LoginPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || !!successMessage}
                 className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-4 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-purple-200 flex items-center justify-center space-x-2 group disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     <span>Signing in...</span>
+                  </>
+                ) : successMessage ? (
+                  <>
+                    <CheckCircle className="w-5 h-5 animate-bounce" />
+                    <span>Redirecting...</span>
                   </>
                 ) : (
                   <>
@@ -262,6 +258,9 @@ export default function LoginPage() {
                 )}
               </button>
             </form>
+
+            {/* Demo Credentials */}
+
           </div>
 
           {/* Footer Links */}
@@ -279,6 +278,36 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes progress {
+          from {
+            width: 0%;
+          }
+          to {
+            width: 100%;
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-progress {
+          animation: progress 2s linear forwards;
+        }
+      `}</style>
     </>
   );
 }

@@ -15,7 +15,7 @@ export interface UserResponse {
   id: string; // UUID comes as string in JSON
   username: string;
   email: string;
-  role: string;
+  role: string | "user";
   bio?: string | null;
   profile_image?: string | null;
   provider: string;
@@ -34,9 +34,19 @@ export interface GoogleLoginRequest {
 export interface AuthResponse {
   success: boolean;
   message: string;
-  user?: UserResponse | null;
+  user?: {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+    bio?: string | null;
+    profile_image?: string | null;
+    provider: string;
+    created_at: string;
+  } | null;
   access_token?: string | null;
 }
+
 
 export interface PostBase {
   title?: string | null;
@@ -44,13 +54,14 @@ export interface PostBase {
   image_url?: string | null;
 }
 
-export interface PostCreateRequest extends PostBase {}
+export interface PostCreateRequest extends PostBase { }
 
 export interface PostResponse extends PostBase {
   id: string;
   user_id: string;
   created_at: string;
-  user: UserResponse;
+  user?: UserResponse;
+  total_pages:Number;
   comments?: CommentResponse[]; // For future use
 }
 
@@ -59,16 +70,18 @@ export interface CommentBase {
   image_url?: string | null;
 }
 
-export interface CommentCreate extends CommentBase {}
+export interface CommentCreate extends CommentBase { }
 
 export interface CommentResponse extends CommentBase {
   id: string;
   post_id: string;
   user_id: string;
   created_at: string;
-  image_url?: string | null;
+  image_url?: string | null; // Optional
+  parent_comment_id?: string | null;   // Optional
   content: string;
   user: UserResponse;
+  replies?: CommentResponse[]; // Optional
 }
 
 export interface UserUpdate {

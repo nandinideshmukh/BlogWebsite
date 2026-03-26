@@ -39,7 +39,7 @@ async def create_post_endp(
     )
     
     # Create post with optional image
-    new_post = PostService.create_post(
+    new_post =await PostService.create_post(
         db=db,
         post_data=post_data,
         user_id=current_user.id,
@@ -80,7 +80,7 @@ async def update_post(
         image_url=None  
     )
     
-    updated_post = PostService.update_post(
+    updated_post =await PostService.update_post(
         db=db,
         post_id=post_uuid,
         post_data=post_data,
@@ -94,15 +94,28 @@ async def update_post(
     return updated_post
 
 @router.get("/getAll", status_code=status.HTTP_200_OK)
-async def get_all_posts(db: Session = Depends(get_db), page: int = 1, per_page: int = 10, current_user = Depends(get_current_user)):
+async def get_all_posts(
+    db: Session = Depends(get_db), 
+    page: int = 1, 
+    per_page: int = 10, 
+    current_user = Depends(get_current_user)
+):
     posts = PostService.get_all_posts(db, page=page, per_page=per_page)
-    # posts = service.get_all_posts(db)
+    
+    total_posts = len(posts)
+    
+    total_pages = (total_posts + per_page - 1) // per_page  
     
     if not posts:
         raise HTTPException(status_code=404, detail="No posts found")
+    
     return {
         "success": True,
         "message": "Posts retrieved successfully",
+        "total_pages": total_pages,
+        "total_posts": total_posts,
+        "current_page": page,
+        "per_page": per_page,
         "posts": posts
     }
     
