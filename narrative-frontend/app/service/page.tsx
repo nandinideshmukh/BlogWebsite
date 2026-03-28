@@ -1,6 +1,9 @@
 import Footer from "@/components/Footer";
+import Navbar from "@/components/NavBar";
 export default function ServicePage() {
   return (
+    <>
+    <Navbar/>
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Decorative background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -255,5 +258,6 @@ export default function ServicePage() {
       </div>
       <Footer/>
     </div>
+    </>
   );
 }

@@ -26,7 +26,7 @@ export default function AboutPage() {
       email: "nandini.deshmukh@blogapp.com",
       github: "https://github.com/nandinideshmukh",
       linkedin: "https://linkedin.com/in/nandinideshmukh",
-      twitter: "https://twitter.com/nandinideshmukh",
+      // twitter: "https://twitter.com/nandinideshmukh",/
       icon: Server,
       color: "from-blue-600 to-blue-800"
     },
@@ -38,7 +38,7 @@ export default function AboutPage() {
       email: "siddhi.chavan@blogapp.com",
       github: "https://github.com/siddhichavan",
       linkedin: "https://linkedin.com/in/siddhichavan",
-      twitter: "https://twitter.com/siddhichavan",
+      // twitter: "https://twitter.com/siddhichavan",
       icon: Smartphone,
       color: "from-blue-600 to-blue-800"
     }
@@ -137,15 +137,15 @@ export default function AboutPage() {
                           >
                             <Linkedin className="w-5 h-5 text-gray-600 group-hover/link:scale-110 transition-transform" />
                           </a>
-                          <a
+                          {/* <a
                             href={member.twitter}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-300 group/link"
-                            aria-label="Twitter"
-                          >
-                            <Twitter className="w-5 h-5 text-gray-600 group-hover/link:scale-110 transition-transform" />
-                          </a>
+                            aria-label="Twitter" */}
+                          {/* > */}
+                            {/* <Twitter className="w-5 h-5 text-gray-600 group-hover/link:scale-110 transition-transform" /> */}
+                          {/* </a> */}
                         </div>
                       </div>
 
@@ -251,7 +251,7 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="mailto:careers@blogapp.com"
+                href="complianceai3115@gmail.com"
                 className="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 <Mail className="w-5 h-5 mr-2" />
