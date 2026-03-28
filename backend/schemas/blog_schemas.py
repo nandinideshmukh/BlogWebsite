@@ -1,4 +1,3 @@
-import sqlalchemy
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from typing import Optional,List
 from datetime import datetime
@@ -44,6 +43,7 @@ class PostBase(BaseModel):
     title: Optional[str] = None
     content: str
     image_url: Optional[str] = None
+    likes_count: int = 0
     
     model_config = ConfigDict(from_attributes=True)
     

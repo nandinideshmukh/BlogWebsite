@@ -61,8 +61,9 @@ export interface PostResponse extends PostBase {
   user_id: string;
   created_at: string;
   user?: UserResponse;
-  total_pages:Number;
-  comments?: CommentResponse[]; // For future use
+  total_pages:number;
+  comments?: CommentResponse[]; 
+  likes_count:number
 }
 
 export interface CommentBase {

@@ -188,7 +188,6 @@ export default function RegisterPage() {
         // Success case
         setSuccessMessage(data.message || "User registered successfully!");
         
-        // Store the token and user data
         localStorage.setItem("access_token", data.access_token);
         localStorage.setItem("user", JSON.stringify(data.user));
         
@@ -197,7 +196,6 @@ export default function RegisterPage() {
           user: data.user,
         });
 
-        // Redirect after success
         setTimeout(() => {
           router.push("/main_page");
           router.refresh();

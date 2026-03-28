@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { updateCurrentUser } from "@/lib/api";
 import { UserResponse } from "../app/types/interface";
 import { CheckCircle, AlertCircle } from "lucide-react";
@@ -20,9 +19,18 @@ export default function EditProfile({
   const [newUsername, setNewUsername] = useState(user.username);
   const [newBio, setNewBio] = useState(user.bio || "");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // ✅ Fix: convert relative URL to absolute so <img> can display it
+  const resolveImageUrl = (url?: string | null): string | null => {
+    if (!url) return null;
+    if (url.startsWith("http")) return url;
+    return `http://localhost:8000/${url}`;
+  };
+
   const [previewImage, setPreviewImage] = useState<string | null>(
-    user.profile_image || null
+    resolveImageUrl(user.profile_image)
   );
+
   const [successMessage, setSuccessMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,14 +40,12 @@ export default function EditProfile({
 
     const file = e.target.files[0];
 
-    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setError("Image size should be less than 5MB");
       return;
     }
 
-    // Check file type
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       setError("Please upload an image file");
       return;
     }
@@ -47,6 +53,7 @@ export default function EditProfile({
     setSelectedFile(file);
     setError("");
 
+    // ✅ FileReader produces a base64 URL — plain <img> handles this fine
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreviewImage(reader.result as string);
@@ -54,14 +61,11 @@ export default function EditProfile({
     reader.readAsDataURL(file);
   };
 
-  // In EditProfile.tsx, make sure the handleUpdate function is correct
   const handleUpdate = async () => {
     try {
       setLoading(true);
       setError("");
       setSuccessMessage("");
-
-      console.log("Updating with:", { username: newUsername, bio: newBio, file: selectedFile });
 
       const updatedUser = await updateCurrentUser({
         username: newUsername,
@@ -69,18 +73,12 @@ export default function EditProfile({
         profile_image: selectedFile,
       });
 
-      console.log("API Response:", updatedUser);
-
       setSuccessMessage("Profile updated successfully!");
-
-      // Call onSuccess immediately with the updated user
       onSuccess(updatedUser);
 
-      // Close after showing success message
       setTimeout(() => {
         onClose();
       }, 1500);
-
     } catch (error: any) {
       console.error("Update error:", error);
       setError(error.message || "Failed to update profile");
@@ -131,15 +129,13 @@ export default function EditProfile({
             Profile Picture
           </label>
           <div className="flex items-center space-x-4">
-            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 p-1">
+            <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 p-1 flex-shrink-0">
               {previewImage ? (
-                <Image
+                // ✅ Use plain <img> — handles base64, http, and any URL without Next.js domain validation
+                <img
                   src={previewImage}
-                  alt="Profile"
-                  width={96}
-                  height={96}
+                  alt="Profile preview"
                   className="object-cover w-full h-full rounded-full"
-                  unoptimized
                 />
               ) : (
                 <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
@@ -188,6 +184,7 @@ export default function EditProfile({
           />
         </div>
 
+        {/* Buttons */}
         <div className="flex space-x-3">
           <button
             onClick={handleUpdate}

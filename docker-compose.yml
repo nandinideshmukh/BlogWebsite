@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./narrative-frontend
+      dockerfile: Dockerfile
+    container_name: blog-frontend 
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend  
+      dockerfile: Dockerfile
+    container_name: blog-backend  
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ./backend/.env 
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

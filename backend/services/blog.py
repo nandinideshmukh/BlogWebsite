@@ -1,5 +1,5 @@
 from schemas.blog_schemas import PostCreateRequest
-from models.blog_model import Post, Comment
+from models.blog_model import Post, Comment,Likes
 import uuid, datetime
 from sqlalchemy.orm import Session, joinedload, selectinload
 from services.user import add_image
@@ -90,7 +90,8 @@ class PostService:
             
     def get_all_posts(db, page: int = 1, per_page: int = 10) -> list[Post]:
         offset = (page - 1) * per_page
-        return (
+        total_posts = db.query(Post).count()
+        posts =  (
             db.query(Post)
             .options(
                 joinedload(Post.user),
@@ -105,6 +106,9 @@ class PostService:
             .limit(per_page)
             .all()
         )
+        for post in posts:
+            post.likes_count = db.query(Likes).filter(Likes.post_id == post.id).count()
+        return posts,total_posts
 
     def get_post_by_id(db, post_id) -> Post:
         # Ensure post_id is a UUID instance before querying. Accepts both str and uuid.UUID.
@@ -114,7 +118,7 @@ class PostService:
             except ValueError:
                 # invalid format will simply not match any rows
                 return None
-        return (
+        post =  (
             db.query(Post)
             .options(
                 joinedload(Post.user),
@@ -127,6 +131,9 @@ class PostService:
             .filter(Post.id == post_id)
             .first()
         )
+        if post:
+            post.likes_count = db.query(Likes).filter(Likes.post_id == post.id).count()
+        return post
 
     def delete_post(db, post_id, user_id) -> bool:
         post = (
@@ -140,7 +147,7 @@ class PostService:
 
     def get_posts_by_user_id(db, user_id) -> list[Post]:
         try:
-            return (
+            posts =  (
                 db.query(Post)
                 .options(
                     joinedload(Post.user),
@@ -154,6 +161,9 @@ class PostService:
                 .order_by(Post.created_at.desc())
                 .all()
             )
+            for post in posts:
+                post.likes_count = db.query(Likes).filter(Likes.post_id == post.id).count()
+            return posts
         except Exception as e:
             raise e
             

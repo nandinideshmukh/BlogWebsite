@@ -1,6 +1,7 @@
 from uuid import UUID
 import uuid, datetime
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from schemas.blog_schemas import LikeRequest, LikeResponse
 from models.blog_model import Post, Comment, Likes
@@ -109,7 +110,15 @@ class LikeService:
     
     def get_likes_by_comment_id(db: Session, comment_id: UUID) -> list[LikeResponse]:
         # fetch likes and count them
-        likes = db.query(Likes).filter(Likes.comment_id == comment_id).all()
+        likes = (
+            db.query(Likes)
+            .filter(
+                Likes.comment_id == comment_id,
+                # if this is there then likes comments do not get triggered
+                # Likes.post_id.isnot(None)
+            )
+            .all()
+)
         comment_likes_count = len(likes)
         return [
             LikeResponse(
@@ -122,4 +131,49 @@ class LikeService:
             )
             for like in likes
         ]
+    
+    def get_likesposts_by_user_id(db:Session,user_id:UUID) -> list[LikeResponse]:
+        if(isinstance(user_id,str)):
+            user_id = UUID(user_id)
+        likes = (
+            db.query(Likes)
+            .filter(
+                Likes.user_id == user_id,
+                Likes.post_id.isnot(None)
+            )
+            .all()
+        )
+        
+        return [
+            LikeResponse(
+                id=like.id,
+                success=True,
+                message="Likes by user",
+                # comment_id = like.comment_id,
+                post_id = like.post_id,
+                user_id=like.user_id,
+                total_likes=0,
+            )
+            for like in likes
+        ]
+
+    def get_likescomments_by_user_id(db:Session,user_id:UUID) -> list[LikeResponse]:
+        if(isinstance(user_id,str)):
+            user_id = UUID(user_id)
+        likes = db.query(Likes).filter(Likes.user_id == user_id,
+                Likes.comment_id.isnot(None)
+                )  
+        return [
+            LikeResponse(
+                id=like.id,
+                success=True,
+                message="Likes by user",
+                comment_id = like.comment_id,
+                # post_id = like.post_id,
+                user_id=like.user_id,
+                total_likes=0,
+            )
+            for like in likes
+        ]
+
         

@@ -54,7 +54,7 @@ async def get_user_comments(user_id: str, db: Session = Depends(get_db),current_
 
     return comments
 
-@router.get("/{comment_id}/",response_model=CommentResponse,status_code=status.HTTP_200_OK)
+@router.get("/{comment_id}",response_model=CommentResponse,status_code=status.HTTP_200_OK)
 async def get_comment_by_id(comment_id: str, db: Session = Depends(get_db),current_user = Depends(get_current_user)
 ):
     comment = CommentService.get_comment_by_id(db, comment_id)
@@ -135,7 +135,11 @@ async def get_replies_by_comment(
     
     return replies
 
-@router.get("/post/{post_id}/with-replies", response_model=list[CommentResponse], status_code=status.HTTP_200_OK)
+@router.get(
+    "/post/{post_id}/with-replies",
+    response_model=list[CommentResponse],
+    status_code=status.HTTP_200_OK
+)
 async def get_comments_with_replies(
     post_id: str,
     db: Session = Depends(get_db),
@@ -144,11 +148,22 @@ async def get_comments_with_replies(
     try:
         post_uuid = UUID(post_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid post ID format")
-    
-    comments = CommentService.get_comments_by_post_id(db, post_uuid)
-    
-    for comment in comments:
-        comment.replies = CommentService.get_replies_by_comment_id(db, comment.id)
-    
-    return comments
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid post ID format"
+        )
+
+    parent_comments = CommentService.get_parent_comments_by_post_id(
+        db,
+        post_uuid
+    )
+
+    for comment in parent_comments:
+        replies = CommentService.get_replies_by_comment_id(
+            db,
+            comment.id
+        )
+
+        comment.replies = replies
+
+    return parent_comments

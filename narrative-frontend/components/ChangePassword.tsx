@@ -35,7 +35,20 @@ export default function UpdatePassword({ isOpen, onClose }: UpdatePasswordProps)
   const [loading, setLoading] = useState(false);
 
   const getPasswordStrength = (password: string) => {
-    if (!password) return { score: 0, label: "None", color: "bg-gray-200", message: "Enter a password", checks: {} };
+
+    if (!password) return {
+
+      score: 0,
+
+      label: "None",
+
+      color: "bg-gray-200",
+
+      message: "Enter a password",
+
+      checks: { length: false, upper: false, lower: false, number: false, special: false }
+
+    };
 
     let score = 0;
     const checks = {
@@ -264,11 +277,10 @@ export default function UpdatePassword({ isOpen, onClose }: UpdatePasswordProps)
                 <div className="mt-3 space-y-2 animate-in slide-in-from-top duration-300">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-500">Password strength:</span>
-                    <span className={`text-xs font-medium ${
-                      passwordStrength.label === "Strong" ? "text-green-600" :
-                      passwordStrength.label === "Good" ? "text-blue-600" :
-                      passwordStrength.label === "Medium" ? "text-yellow-600" : "text-red-600"
-                    }`}>
+                    <span className={`text-xs font-medium ${passwordStrength.label === "Strong" ? "text-green-600" :
+                        passwordStrength.label === "Good" ? "text-blue-600" :
+                          passwordStrength.label === "Medium" ? "text-yellow-600" : "text-red-600"
+                      }`}>
                       {passwordStrength.label}
                     </span>
                   </div>
@@ -285,33 +297,28 @@ export default function UpdatePassword({ isOpen, onClose }: UpdatePasswordProps)
 
                   {/* Password Requirements */}
                   <div className="grid grid-cols-2 gap-2 mt-2">
-                    <div className={`text-xs flex items-center space-x-1 ${
-                      passwordStrength.checks?.length ? 'text-green-600' : 'text-gray-400'
-                    }`}>
+                    <div className={`text-xs flex items-center space-x-1 ${passwordStrength.checks?.length ? 'text-green-600' : 'text-gray-400'
+                      }`}>
                       <CheckCircle size={10} />
                       <span>8+ characters</span>
                     </div>
-                    <div className={`text-xs flex items-center space-x-1 ${
-                      passwordStrength.checks?.upper ? 'text-green-600' : 'text-gray-400'
-                    }`}>
+                    <div className={`text-xs flex items-center space-x-1 ${passwordStrength.checks?.upper ? 'text-green-600' : 'text-gray-400'
+                      }`}>
                       <CheckCircle size={10} />
                       <span>Uppercase</span>
                     </div>
-                    <div className={`text-xs flex items-center space-x-1 ${
-                      passwordStrength.checks?.lower ? 'text-green-600' : 'text-gray-400'
-                    }`}>
+                    <div className={`text-xs flex items-center space-x-1 ${passwordStrength.checks?.lower ? 'text-green-600' : 'text-gray-400'
+                      }`}>
                       <CheckCircle size={10} />
                       <span>Lowercase</span>
                     </div>
-                    <div className={`text-xs flex items-center space-x-1 ${
-                      passwordStrength.checks?.number ? 'text-green-600' : 'text-gray-400'
-                    }`}>
+                    <div className={`text-xs flex items-center space-x-1 ${passwordStrength.checks?.number ? 'text-green-600' : 'text-gray-400'
+                      }`}>
                       <CheckCircle size={10} />
                       <span>Number</span>
                     </div>
-                    <div className={`text-xs flex items-center space-x-1 ${
-                      passwordStrength.checks?.special ? 'text-green-600' : 'text-gray-400'
-                    }`}>
+                    <div className={`text-xs flex items-center space-x-1 ${passwordStrength.checks?.special ? 'text-green-600' : 'text-gray-400'
+                      }`}>
                       <CheckCircle size={10} />
                       <span>Special char</span>
                     </div>
@@ -353,10 +360,9 @@ export default function UpdatePassword({ isOpen, onClose }: UpdatePasswordProps)
 
               {/* Password Match Indicator */}
               {passwordData.confirm_password && (
-                <p className={`text-xs mt-1 flex items-center ${
-                  passwordData.new_password === passwordData.confirm_password
+                <p className={`text-xs mt-1 flex items-center ${passwordData.new_password === passwordData.confirm_password
                     ? "text-green-600" : "text-red-500"
-                }`}>
+                  }`}>
                   {passwordData.new_password === passwordData.confirm_password ? (
                     <>
                       <CheckCircle size={12} className="mr-1" />

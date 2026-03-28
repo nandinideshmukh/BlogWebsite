@@ -7,6 +7,7 @@ import Link from "next/link";
 import { PostResponse } from "@/app/types/interface";
 import { getUserById } from "@/lib/api";
 import { getUserPosts } from "@/lib/blog";
+import { getLikesPostsByUserId } from "@/lib/likes";
 
 import {
     ArrowLeft,
@@ -29,7 +30,6 @@ import {
     Sparkles,
     PenSquare,
     Bookmark,
-    Eye,
     ChevronRight
 } from "lucide-react";
 
@@ -41,12 +41,7 @@ export default function UserBlogsPage() {
     const [posts, setPosts] = useState<PostResponse[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const [stats, setStats] = useState({
-        totalLikes: 0,
-        totalViews: 0,
-        totalComments: 0,
-        joinedDate: ""
-    });
+    const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
 
     const [userInfo, setUserInfo] = useState<{
         id: string;
@@ -66,35 +61,26 @@ export default function UserBlogsPage() {
             setError("");
 
             try {
-                const [postsRes, user] = await Promise.all([
+                const [postsRes, user, likedPosts] = await Promise.all([
                     getUserPosts(userId),
-                    getUserById(userId)
+                    getUserById(userId),
+                    getLikesPostsByUserId(userId) 
                 ]);
 
-                // console.log(
-                //     "USER POSTS:",
-                //     postsRes.posts
-                // );
-
-                // console.log(
-                //     "USE:",
-                //     user
-                // );
                 if (postsRes.success) {
                     setPosts(postsRes.posts);
-
-                    const likes = postsRes.posts.reduce((acc, post) => acc + (post.likes?.length || 0), 0);
-                    const comments = postsRes.posts.reduce((acc, post) => acc + (post.comments?.length || 0), 0);
-
-                    setStats({
-                        totalLikes: likes,
-                        totalViews: postsRes.posts.length * 125, // Mock data
-                        totalComments: comments,
-                        joinedDate: user.created_at
-                    });
                 }
 
                 setUserInfo(user);
+
+                // store liked post ids
+                const likedIds = new Set(
+                    likedPosts.map((like: any) =>
+                        String(like.post_id)
+                    )
+                );
+
+                setLikedPostIds(likedIds);
 
             } catch (err: any) {
                 console.error(err);
@@ -262,29 +248,29 @@ export default function UserBlogsPage() {
                                         <span className="font-semibold text-gray-800">{posts.length}</span>
                                         <span className="ml-1 text-gray-500">posts</span>
                                     </div>
-
                                     <div className="flex items-center">
                                         <Heart className="w-5 h-5 mr-2 text-red-500" />
-                                        <span className="font-semibold text-gray-800">{stats.totalLikes}</span>
+                                        <span className="font-semibold text-gray-800">
+                                            {posts.reduce((acc, post) => acc + (post.likes_count ?? 0), 0)}
+                                        </span>
                                         <span className="ml-1 text-gray-500">likes</span>
                                     </div>
-
                                     <div className="flex items-center">
-                                        <Eye className="w-5 h-5 mr-2 text-blue-500" />
-                                        <span className="font-semibold text-gray-800">{stats.totalViews.toLocaleString()}</span>
-                                        <span className="ml-1 text-gray-500">views</span>
+                                        <MessageCircle className="w-5 h-5 mr-2 text-blue-500" />
+                                        <span className="font-semibold text-gray-800">
+                                            {posts.reduce((acc, post) => acc + (post.comments?.length ?? 0), 0)}
+                                        </span>
+                                        <span className="ml-1 text-gray-500">comments</span>
                                     </div>
-
                                     <div className="flex items-center">
                                         <Calendar className="w-5 h-5 mr-2 text-green-500" />
-                                        <span className="text-gray-500">
-                                            Joined {formatDate(userInfo.created_at)}
-                                        </span>
+                                        <span className="text-gray-500">Joined {formatDate(userInfo.created_at)}</span>
                                     </div>
                                 </div>
 
+
                                 {/* Social Links (Optional) */}
-                                <div className="flex space-x-3 mt-4">
+                                {/* <div className="flex space-x-3 mt-4">
                                     <a href="#" className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                                         <Twitter className="w-4 h-4 text-gray-600" />
                                     </a>
@@ -294,7 +280,7 @@ export default function UserBlogsPage() {
                                     <a href="#" className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
                                         <Globe className="w-4 h-4 text-gray-600" />
                                     </a>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     </div>
@@ -408,8 +394,13 @@ export default function UserBlogsPage() {
                                                 <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                                                     <div className="flex items-center space-x-6">
                                                         <button className="flex items-center space-x-2 text-gray-500 hover:text-red-500 transition-colors group">
-                                                            <Heart className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                                            {/* <span className="text-sm font-medium">{post. || 0}</span> */}
+                                                            <Heart
+                                                                className={`w-5 h-5 group-hover:scale-110 transition-transform ${likedPostIds.has(String(post.id))
+                                                                        ? "text-red-500 fill-red-500"
+                                                                        : "text-gray-500"
+                                                                    }`}
+                                                            />
+                                                            <span className="text-sm font-medium">{post.likes_count}</span>
                                                         </button>
 
                                                         <button className="flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors group">
@@ -417,10 +408,10 @@ export default function UserBlogsPage() {
                                                             <span className="text-sm font-medium">{post.comments?.length || 0}</span>
                                                         </button>
 
-                                                        <button className="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors group">
+                                                        {/* <button className="flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors group">
                                                             <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                                             <span className="text-sm font-medium">125</span>
-                                                        </button>
+                                                        </button> */}
                                                     </div>
 
                                                     <button className="flex items-center space-x-2 text-gray-500 hover:text-purple-600 transition-colors group">

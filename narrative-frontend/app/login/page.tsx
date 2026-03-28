@@ -111,7 +111,7 @@ export default function LoginPage() {
 
             <h1 className="text-3xl font-bold mb-2">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Sign In to BlogApp
+                Sign In to Narrative
               </span>
             </h1>
             <p className="text-gray-600">
@@ -267,7 +267,7 @@ export default function LoginPage() {
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-500">
               By signing in, you agree to our{" "}
-              <Link href="/terms" className="text-blue-600 hover:text-purple-600 font-medium transition-colors duration-300">
+              <Link href="/service" className="text-blue-600 hover:text-purple-600 font-medium transition-colors duration-300">
                 Terms of Service
               </Link>{" "}
               and{" "}

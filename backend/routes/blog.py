@@ -100,15 +100,16 @@ async def get_all_posts(
     per_page: int = 10, 
     current_user = Depends(get_current_user)
 ):
-    posts = PostService.get_all_posts(db, page=page, per_page=per_page)
+    posts,total_posts = PostService.get_all_posts(db, page=page, per_page=per_page)
     
-    total_posts = len(posts)
+    # total_posts = len(posts)
     
     total_pages = (total_posts + per_page - 1) // per_page  
     
     if not posts:
         raise HTTPException(status_code=404, detail="No posts found")
-    
+    print(f"total_pages {total_pages}")    
+    print(f"posts {total_posts}")    
     return {
         "success": True,
         "message": "Posts retrieved successfully",

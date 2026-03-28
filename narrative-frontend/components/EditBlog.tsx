@@ -25,23 +25,28 @@ type Props = {
   variant?: "button" | "icon" | "menu";
 };
 
-export default function EditPostModal({ 
-  post, 
-  onUpdated, 
-  variant = "button" 
+export default function EditPostModal({
+  post,
+  onUpdated,
+  variant = "button"
 }: Props) {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState(post.title || "");
   const [content, setContent] = useState(post.content);
   const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(post.image_url || null);
+  const resolveImageUrl = (url?: string | null): string | null => {
+    if (!url || url === "string" || url === "null" || url === "") return null;
+    if (url.startsWith("http")) return url;
+    return `http://localhost:8000/${url}`;
+  };
+  const [imagePreview, setImagePreview] = useState<string | null>(resolveImageUrl(post.image_url));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [titleCount, setTitleCount] = useState(post.title?.length || 0);
   const [contentCount, setContentCount] = useState(post.content.length);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const MAX_TITLE_LENGTH = 100;
@@ -52,7 +57,7 @@ export default function EditPostModal({
     if (open) {
       setTitle(post.title || "");
       setContent(post.content);
-      setImagePreview(post.image_url || null);
+      setImagePreview(resolveImageUrl(post.image_url));
       setTitleCount(post.title?.length || 0);
       setContentCount(post.content.length);
       setImage(null);
@@ -83,13 +88,13 @@ export default function EditPostModal({
         setError("Image size should be less than 5MB");
         return;
       }
-      
+
       // Check file type
       if (!file.type.startsWith('image/')) {
         setError("Please upload an image file");
         return;
       }
-      
+
       setImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -126,17 +131,17 @@ export default function EditPostModal({
       setError("Title is required");
       return;
     }
-    
+
     if (!content.trim()) {
       setError("Content is required");
       return;
     }
-    
+
     if (title.length > MAX_TITLE_LENGTH) {
       setError(`Title must be less than ${MAX_TITLE_LENGTH} characters`);
       return;
     }
-    
+
     if (content.length > MAX_CONTENT_LENGTH) {
       setError(`Content must be less than ${MAX_CONTENT_LENGTH} characters`);
       return;
@@ -153,14 +158,14 @@ export default function EditPostModal({
       });
 
       setSuccess("Post updated successfully!");
-      
+
       if (onUpdated) onUpdated(updated);
 
       // Close after showing success
       setTimeout(() => {
         setOpen(false);
       }, 1500);
-      
+
     } catch (err: any) {
       setError(err.message || "Failed to update post");
     } finally {
@@ -198,7 +203,7 @@ export default function EditPostModal({
             onContentChange={handleContentChange}
             onImageChange={handleImageChange}
             onRemoveImage={removeImage}
-            onFileInputRef={fileInputRef}
+            onFileInputRef={fileInputRef }
             onClose={() => setOpen(false)}
             onSubmit={handleSubmit}
           />
@@ -301,7 +306,7 @@ const EditPostModalContent = forwardRef<HTMLDivElement, {
   onContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveImage: () => void;
-  onFileInputRef: React.RefObject<HTMLInputElement>;
+  onFileInputRef: React.RefObject<HTMLInputElement | null>;
   onClose: () => void;
   onSubmit: () => void;
 }>((props, ref) => {
@@ -455,11 +460,10 @@ const EditPostModalContent = forwardRef<HTMLDivElement, {
               {imagePreview ? (
                 <div className="relative">
                   <div className="relative h-48 w-full rounded-lg overflow-hidden">
-                    <Image
+                    <img
                       src={imagePreview}
                       alt="Preview"
-                      fill
-                      className="object-cover"
+                      className="object-cover w-full h-full"
                     />
                   </div>
                   <button

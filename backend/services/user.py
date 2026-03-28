@@ -1,4 +1,3 @@
-from sympy import limit
 
 from models.blog_model import User, Post, Comment, Likes
 import dotenv
@@ -248,71 +247,71 @@ def login_user(username: str, password: str, db: Session) -> Dict[str, Any]:
             "access_token": None,
         }
 
-def login_by_google(google_user_info: dict, db: Session) -> Dict[str, Any]:
-    try:
-        email = google_user_info.get("email")
-        username = google_user_info.get("username")  # Changed from 'name' to 'username'
+# def login_by_google(google_user_info: dict, db: Session) -> Dict[str, Any]:
+#     try:
+#         email = google_user_info.get("email")
+#         username = google_user_info.get("username")  # Changed from 'name' to 'username'
 
-        if not email:
-            return {
-                "success": False,
-                "message": "Google user info must include an email.",
-                "user": None,
-                "access_token": None,
-            }
+#         if not email:
+#             return {
+#                 "success": False,
+#                 "message": "Google user info must include an email.",
+#                 "user": None,
+#                 "access_token": None,
+#             }
 
-        user = get_user_by_email(email, db)
+#         user = get_user_by_email(email, db)
 
-        if user is None:
-            import secrets
-            import string
+#         if user is None:
+#             import secrets
+#             import string
 
-            alphabet = string.ascii_letters + string.digits
+#             alphabet = string.ascii_letters + string.digits
             
-            alphabet = string.ascii_letters + string.digits
-            random_password = ''.join(secrets.choice(alphabet) for _ in range(30))            
-            password_bytes = random_password.encode('utf-8')
+#             alphabet = string.ascii_letters + string.digits
+#             random_password = ''.join(secrets.choice(alphabet) for _ in range(30))            
+#             password_bytes = random_password.encode('utf-8')
             
-            if len(password_bytes) > 72:
-                random_password = random_password[:60]
+#             if len(password_bytes) > 72:
+#                 random_password = random_password[:60]
 
-            user = User(
-                username=username or email.split('@')[0],  # fallback if username missing
-                email=email,
-                password_hash=hash_password(random_password),
-                provider="google",
-                created_at=datetime.now(timezone.utc)
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+#             user = User(
+#                 username=username or email.split('@')[0],  # fallback if username missing
+#                 email=email,
+#                 password_hash=hash_password(random_password),
+#                 provider="google",
+#                 created_at=datetime.now(timezone.utc)
+#             )
+#             db.add(user)
+#             db.commit()
+#             db.refresh(user)
 
-        access_token = create_access_token(
-            data={"sub": user.email, "user_id": str(user.id)}
-        )
+#         access_token = create_access_token(
+#             data={"sub": user.email, "user_id": str(user.id)}
+#         )
 
-        return {
-            "success": True,
-            "message": "User logged in successfully via Google.",
-            "user": {
-                "id": str(user.id),
-                "username": user.username,
-                "email": user.email,
-                "provider": user.provider,
-                "profile_image": user.profile_image,
-                "bio": user.bio,
-            },
-            "access_token": access_token,
-        }
+#         return {
+#             "success": True,
+#             "message": "User logged in successfully via Google.",
+#             "user": {
+#                 "id": str(user.id),
+#                 "username": user.username,
+#                 "email": user.email,
+#                 "provider": user.provider,
+#                 "profile_image": user.profile_image,
+#                 "bio": user.bio,
+#             },
+#             "access_token": access_token,
+#         }
 
-    except Exception as e:
-        db.rollback()
-        return {
-            "success": False,
-            "message": str(e),
-            "user": None,
-            "access_token": None,
-        }
+#     except Exception as e:
+#         db.rollback()
+#         return {
+#             "success": False,
+#             "message": str(e),
+#             "user": None,
+#             "access_token": None,
+#         }
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
@@ -337,7 +336,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
         raise HTTPException(status_code=401, detail="Invalid token")
     
     
-def update_user(
+async def update_user(
     user_id: str,
     username: Optional[str] = None,
     profile_image_file = None, 
@@ -354,7 +353,7 @@ def update_user(
         user.username = username
     
     if profile_image_file:
-        image_result = add_image(
+        image_result =await add_image(
             user_id=user_id,
             image_file=profile_image_file,
             db=db,

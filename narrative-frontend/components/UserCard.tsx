@@ -103,7 +103,7 @@ export default function UserCard({
           {/* Avatar */}
           <div className="-mt-14 flex justify-center">
             <div className="w-28 h-28 rounded-full border-4 border-white overflow-hidden shadow-lg bg-gray-200">
-              {currentUser?.profile_image && !imageError ? (
+              {currentUser?.profile_image && currentUser?.profile_image.startsWith("http") && !imageError ? (
                 <Image
                   key={currentUser.profile_image} // Add key to force re-render on image change
                   src={currentUser.profile_image}

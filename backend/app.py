@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes import user,blog,comment,likes  # make sure your router file is routers/users.py
-from db.create_db import Base, engine
- 
+from routes import user,blog,comment,likes 
+from db.create_db import Base, engine 
 
 Base.metadata.create_all(bind=engine)
 
@@ -14,11 +13,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["http://localhost:3000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(user.router)
 app.include_router(blog.router)

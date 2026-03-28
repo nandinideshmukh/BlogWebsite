@@ -1,14 +1,11 @@
 from fastapi.security import OAuth2PasswordRequestForm
 import os
 from typing import Optional
-from google.oauth2 import id_token
-from google.auth.transport import requests
 from fastapi import UploadFile,Form,File
 from models.blog_model import User
 from fastapi import Request
 from services.user import (
     count_users,
-    login_by_google,
     login_user,
     check_user_exists,
     create_user,
@@ -25,10 +22,6 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from db.create_db import get_db
 from schemas.blog_schemas import (
-    GoogleLoginRequest,
-    UserCreate,
-    UserSearchResponse,
-    UserUpdate,
     PasswordChange,
     AuthResponse,
     UserResponse
@@ -40,38 +33,38 @@ router = APIRouter(prefix="/users", tags=["users"])
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 
-@router.post("/login/google", response_model=AuthResponse, status_code=status.HTTP_200_OK)
-async def login_google(
-    body: GoogleLoginRequest,
-    db: Session = Depends(get_db),
-):
-    try:
-        idinfo = id_token.verify_oauth2_token(
-            body.token,
-            requests.Request(),
-            os.getenv("GOOGLE_CLIENT_ID")
-        )
+# @router.post("/login/google", response_model=AuthResponse, status_code=status.HTTP_200_OK)
+# async def login_google(
+#     body: GoogleLoginRequest,
+#     db: Session = Depends(get_db),
+# ):
+#     try:
+#         idinfo = id_token.verify_oauth2_token(
+#             body.token,
+#             requests.Request(),
+#             os.getenv("GOOGLE_CLIENT_ID")
+#         )
 
-        email = idinfo["email"]
-        username = idinfo.get("name")
+#         email = idinfo["email"]
+#         username = idinfo.get("name")
 
-        result = login_by_google(
-            {"email": email, "username": username},
-            db
-        )
+#         result = login_by_google(
+#             {"email": email, "username": username},
+#             db
+#         )
 
-        if not result["success"]:
-            raise HTTPException(status_code=400, detail=result["message"])
+#         if not result["success"]:
+#             raise HTTPException(status_code=400, detail=result["message"])
 
-        return AuthResponse(
-            success=True,
-            message="User logged in successfully via Google.",
-            user=UserResponse.model_validate(result["user"]),
-            access_token=result["access_token"],
-        )
+#         return AuthResponse(
+#             success=True,
+#             message="User logged in successfully via Google.",
+#             user=UserResponse.model_validate(result["user"]),
+#             access_token=result["access_token"],
+#         )
 
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Google token")
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid Google token")
     
 @router.post("/login", response_model=AuthResponse, status_code=status.HTTP_200_OK)
 async def login(
@@ -87,7 +80,7 @@ async def login(
     result = login_user(form_data.username, form_data.password, db)
 
     if not result["success"]:
-        raise HTTPException(status_code=400,message = "Invalid username or password", detail=result["message"])
+        raise HTTPException(status_code=400,detail=result["message"])
 
     return AuthResponse(
         success=True,
@@ -156,7 +149,7 @@ async def update_user_route(
         profile_image_file = profile_image.file
     
     # Update user with optional profile image
-    result = update_user(
+    result =  await update_user(
         user_id=str(current_user.id),
         username=username,
         profile_image_file=profile_image_file,
