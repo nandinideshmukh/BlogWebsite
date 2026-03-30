@@ -2,8 +2,10 @@
 
 A **full-stack blog application** built using **Next.js (Frontend)** and **FastAPI (Backend)** with Dockerized deployment.
 This project allows users to create blogs, like posts, comment (including nested replies), and manage authentication securely.
-
----
+--
+**N+1** problem solved !
+**Dynamic routes** are used for profileId and postId.
+--
 
 # 🚀 Project Overview
 
