@@ -219,14 +219,20 @@ export default function RegisterPage() {
         };
 
         if (statusCode === 400 || statusCode === 422) {
-          // specific handling for email already exists
           if (detail === "Email already registered.") {
             setFieldErrors({
               email: "This email is already registered. Please use a different email or try logging in."
             });
             setError("Registration failed: Email already exists");
-          } else if (typeof detail === 'string') {
-            // generic string error
+          }
+          if( detail === "Error creating user: Username must be of 3 or more characters."){
+            setFieldErrors({
+              username: "Registration failed: Email already exists.  Username must be of 3 or more characters.."
+            });
+            setError(" Username must be of 3 or more characters.");
+          }
+          
+          else if (typeof detail === 'string') {
             setError(detail);
           } else if (Array.isArray(detail)) {
             handleValidationArray(detail);

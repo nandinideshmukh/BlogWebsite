@@ -129,6 +129,14 @@ def create_user(
             }
 
         hashed_password = hash_password(password)
+        
+        if username.__len__() < 3:
+            return {
+                "success": False,
+                "message": f"Error creating user: Username must be of 3 or more characters.",
+                "user": None,
+                "access_token": None,
+            }
 
         # Create user with profile_image as None initially
         user = User(
