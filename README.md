@@ -342,6 +342,8 @@ docker compose up
 
 ---
 
-
+### Upcoming features:
+1. Kafka for real time notification
+2. Redis for cache
 
 
