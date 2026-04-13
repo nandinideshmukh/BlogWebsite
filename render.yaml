@@ -3,6 +3,7 @@ services:
     name: blog-backend
     env: docker
     dockerfilePath: backend/Dockerfile
+    buildContext: backend
     plan: free
     autoDeploy: true
 
