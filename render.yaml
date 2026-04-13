@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: blog-backend
+    env: docker
+    dockerfilePath: docker-compose/backend/Dockerfile
+    plan: free
+    autoDeploy: true
+
+  - type: web
+    name: blog-frontend
+    env: docker
+    dockerfilePath: docker-compose/narrative-frontend/Dockerfile
+    plan: free
+    autoDeploy: true
