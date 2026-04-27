@@ -1,15 +1,15 @@
-services:
-  - type: web
-    name: blog-backend
-    env: docker
-    dockerfilePath: backend/Dockerfile
-    buildContext: backend
-    plan: free
-    autoDeploy: true
+# services:
+#   - type: web
+#     name: blog-backend
+#     env: docker
+#     dockerfilePath: backend/Dockerfile
+#     buildContext: backend
+#     plan: free
+#     autoDeploy: true
 
-  - type: web
-    name: blog-frontend
-    env: docker
-    dockerfilePath: narrative-frontend/Dockerfile
-    plan: free
-    autoDeploy: true
+#   - type: web
+#     name: blog-frontend
+#     env: docker
+#     dockerfilePath: narrative-frontend/Dockerfile
+#     plan: free
+#     autoDeploy: true
